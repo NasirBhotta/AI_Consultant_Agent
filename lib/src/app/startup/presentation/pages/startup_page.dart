@@ -49,8 +49,6 @@ class _StartupPageState extends State<StartupPage> {
       backgroundColor: const Color(0xFF0D1C33),
       body: const Center(
         child: SizedBox(
-          width: 108,
-          height: 108,
           child: DecoratedBox(
             decoration: BoxDecoration(
               color: Color(0xFF152742),
@@ -59,9 +57,6 @@ class _StartupPageState extends State<StartupPage> {
             child: Center(
               child: Image(
                 image: AssetImage('assets/branding/splash-icon.png'),
-                width: 54,
-                height: 54,
-                fit: BoxFit.contain,
               ),
             ),
           ),
