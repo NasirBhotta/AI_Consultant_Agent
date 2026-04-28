@@ -47,25 +47,23 @@ class _StartupPageState extends State<StartupPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0D1C33),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
-          child: Column(
-            children: [
-              const Spacer(flex: 3),
-              Image.asset(
-                'assets/branding/splash-logo.png',
-                width: 300,
+      body: const Center(
+        child: SizedBox(
+          width: 108,
+          height: 108,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: Color(0xFF152742),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Image(
+                image: AssetImage('assets/branding/splash-icon.png'),
+                width: 54,
+                height: 54,
                 fit: BoxFit.contain,
               ),
-              const Spacer(flex: 2),
-              Image.asset(
-                'assets/branding/splash-branding.png',
-                width: 220,
-                fit: BoxFit.contain,
-              ),
-              const SizedBox(height: 10),
-            ],
+            ),
           ),
         ),
       ),

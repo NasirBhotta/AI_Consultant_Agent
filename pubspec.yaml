@@ -95,13 +95,10 @@ flutter:
 
 flutter_native_splash:
   color: "#0D1C33"
-  image: assets/branding/splash-logo.png
-  branding: assets/branding/splash-branding.png
+  image: assets/branding/splash-icon.png
   color_dark: "#0D1C33"
-  image_dark: assets/branding/splash-logo.png
-  branding_dark: assets/branding/splash-branding.png
+  image_dark: assets/branding/splash-icon.png
   android_12:
     color: "#0D1C33"
-    image: assets/branding/splash-logo.png
-    branding: assets/branding/splash-branding.png
+    image: assets/branding/splash-icon.png
     icon_background_color: "#152742"
