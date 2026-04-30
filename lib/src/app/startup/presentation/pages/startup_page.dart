@@ -8,7 +8,6 @@ import '../../../../features/auth/constants/auth_strings.dart';
 import '../../../../features/auth/presentation/pages/sign_in_page.dart';
 import '../../../../features/auth/presentation/widgets/auth_brand_badge.dart';
 import '../../../../features/auth/presentation/widgets/auth_shell.dart';
-import '../../../../features/home/presentation/pages/home_page.dart';
 import '../../../../shared/widgets/app_primary_button.dart';
 import '../../../../shared/widgets/app_secondary_button.dart';
 import '../../app_startup.dart';
@@ -60,7 +59,7 @@ class _StartupPageState extends State<StartupPage> {
   }
 
   void _openSignIn() {
-    Navigator.of(context).push(
+    Navigator.of(context).pushReplacement(
       MaterialPageRoute<void>(
         builder: (_) => SignInPage(isStartupReady: _isStartupReady),
       ),
@@ -156,11 +155,10 @@ class _StartupPageState extends State<StartupPage> {
                       ),
                     AppPrimaryButton(
                       label: AuthStrings.signUpTitle,
-                      onPressed: _isInitializing
-                          ? null
-                          : () => _showPendingFlow(
-                                AuthStrings.signUpTitle,
-                              ),
+                      onPressed:
+                          _isInitializing
+                              ? null
+                              : () => _showPendingFlow(AuthStrings.signUpTitle),
                       isLoading: _isInitializing,
                     ),
                     const SizedBox(height: 16),

@@ -14,7 +14,7 @@ class AuthShell extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: appTheme.appBackground,
-      appBar: AppBar(backgroundColor: appTheme.appBackground),
+      // appBar: AppBar(backgroundColor: appTheme.appBackground),
       body: SafeArea(child: Center(child: SingleChildScrollView(child: child))),
     );
   }
