@@ -6,6 +6,7 @@ import '../../../../core/constants/app_strings.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../../../features/auth/constants/auth_strings.dart';
 import '../../../../features/auth/presentation/pages/sign_in_page.dart';
+import '../../../../features/auth/presentation/pages/sign_up_page.dart';
 import '../../../../features/auth/presentation/widgets/auth_brand_badge.dart';
 import '../../../../features/auth/presentation/widgets/auth_shell.dart';
 import '../../../../shared/widgets/app_primary_button.dart';
@@ -66,9 +67,11 @@ class _StartupPageState extends State<StartupPage> {
     );
   }
 
-  void _showPendingFlow(String label) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$label flow is the next screen to build.')),
+  void _openSignUp() {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => SignUpPage(isStartupReady: _isStartupReady),
+      ),
     );
   }
 
@@ -155,10 +158,7 @@ class _StartupPageState extends State<StartupPage> {
                       ),
                     AppPrimaryButton(
                       label: AuthStrings.signUpTitle,
-                      onPressed:
-                          _isInitializing
-                              ? null
-                              : () => _showPendingFlow(AuthStrings.signUpTitle),
+                      onPressed: _isInitializing ? null : _openSignUp,
                       isLoading: _isInitializing,
                     ),
                     const SizedBox(height: 16),
