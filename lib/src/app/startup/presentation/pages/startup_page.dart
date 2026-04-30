@@ -60,7 +60,7 @@ class _StartupPageState extends State<StartupPage> {
 
   void _openSignIn() {
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute<void>(
+      MaterialPageRoute(
         builder: (_) => SignInPage(isStartupReady: _isStartupReady),
       ),
     );

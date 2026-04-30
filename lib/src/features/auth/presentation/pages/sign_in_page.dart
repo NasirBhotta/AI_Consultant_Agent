@@ -1,92 +1,93 @@
+import 'package:agent_app/src/core/utils/app_logger.dart';
+import 'package:agent_app/src/features/auth/data/repositories/firebase_auth_repository.dart';
+import 'package:agent_app/src/app/theme/app_theme_extension.dart';
+import 'package:agent_app/src/core/constants/app_strings.dart';
+import 'package:agent_app/src/core/utils/validators.dart';
+import 'package:agent_app/src/features/auth/constants/auth_strings.dart';
+import 'package:agent_app/src/features/auth/domain/models/sign_in_credentials.dart';
+import 'package:agent_app/src/features/auth/domain/repositories/auth_repository.dart';
+import 'package:agent_app/src/features/auth/presentation/widgets/auth_brand_badge.dart';
+import 'package:agent_app/src/features/auth/presentation/widgets/auth_shell.dart';
+import 'package:agent_app/src/features/home/presentation/pages/home_page.dart';
+import 'package:agent_app/src/shared/widgets/app_primary_button.dart';
+import 'package:agent_app/src/shared/widgets/app_text_field.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../app/theme/app_theme_extension.dart';
-import '../../../../core/constants/app_strings.dart';
-import '../../../../core/utils/app_logger.dart';
-import '../../../../core/utils/validators.dart';
-import '../../../../shared/widgets/app_primary_button.dart';
-import '../../../../shared/widgets/app_secondary_button.dart';
-import '../../../../shared/widgets/app_text_field.dart';
-import '../../constants/auth_strings.dart';
-import '../../data/repositories/firebase_auth_repository.dart';
-import '../../domain/models/sign_in_credentials.dart';
-import '../../domain/repositories/auth_repository.dart';
-import '../widgets/auth_brand_badge.dart';
-import '../widgets/auth_shell.dart';
-import '../widgets/google_mark.dart';
-import '../../../home/presentation/pages/home_page.dart';
-
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key, required this.isStartupReady});
-
   final bool isStartupReady;
-
   @override
   State<SignInPage> createState() => _SignInPageState();
 }
 
 class _SignInPageState extends State<SignInPage> {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-  bool _isSubmitting = false;
-  bool _obscurePassword = true;
+  bool isSubmitting = false;
+  bool obscurePassword = true;
 
-  AuthRepository get _authRepository => FirebaseAuthRepository();
+  AuthRepository get authrepository => FirebaseAuthRepository();
 
   @override
   void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
     super.dispose();
   }
 
   Future<void> _handleSignIn() async {
     if (!widget.isStartupReady) {
-      _showMessage('App services are still starting. Please try again.');
-      return;
+      _showMessage(
+        'App services are still initializing. Please wait a moment and try again.',
+      );
     }
 
-    final formState = _formKey.currentState;
-    if (formState == null || !formState.validate() || _isSubmitting) {
+    final formState = formKey.currentState;
+
+    if (formState == null || !formState.validate()) {
+      _showMessage('Please fix the errors in the form and try again.');
       return;
     }
 
     FocusScope.of(context).unfocus();
+
     setState(() {
-      _isSubmitting = true;
+      isSubmitting = true;
     });
 
     try {
-      await _authRepository.signIn(
+      await authrepository.signIn(
         SignInCredentials(
-          email: _emailController.text,
-          password: _passwordController.text,
+          email: emailController.text,
+          password: passwordController.text,
         ),
       );
 
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
 
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text(AuthStrings.signInSuccess)));
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(builder: (_) => const HomePage()),
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomePage()),
       );
     } on FirebaseAuthException catch (error, stackTrace) {
-      AppLogger.error('Email sign-in failed.', error, stackTrace);
-      _showMessage(error.message ?? AuthStrings.signInFailure);
+      AppLogger.error('Sign-in failed.', error, stackTrace);
+      _showMessage(
+        error.message ?? 'An unknown error occurred. Please try again.',
+      );
     } catch (error, stackTrace) {
-      AppLogger.error('Unexpected sign-in failure.', error, stackTrace);
+      AppLogger.error('Unexpected Sign-in failed.', error, stackTrace);
       _showMessage(AuthStrings.signInFailure);
     } finally {
       if (mounted) {
         setState(() {
-          _isSubmitting = false;
+          isSubmitting = false;
         });
       }
     }
@@ -94,68 +95,54 @@ class _SignInPageState extends State<SignInPage> {
 
   Future<void> _handlePasswordReset() async {
     if (!widget.isStartupReady) {
-      _showMessage('Password reset is unavailable until startup completes.');
+      _showMessage(
+        'App services are still initializing. Please wait a moment and try again.',
+      );
       return;
     }
 
-    final emailError = Validators.email(_emailController.text);
+    final emailError = Validators.email(emailController.text);
     if (emailError != null) {
       _showMessage(emailError);
       return;
     }
 
     try {
-      await _authRepository.sendPasswordReset(email: _emailController.text);
-      _showMessage('Password reset email sent.');
+      await authrepository.sendPasswordReset(email: emailController.text);
+      _showMessage('Password reset email sent. Please check your inbox.');
     } on FirebaseAuthException catch (error, stackTrace) {
       AppLogger.error('Password reset failed.', error, stackTrace);
-      _showMessage(error.message ?? AuthStrings.forgotPasswordUnavailable);
+      _showMessage('Password reset Unavailable. Please try again later.');
     } catch (error, stackTrace) {
-      AppLogger.error('Password reset unavailable.', error, stackTrace);
+      AppLogger.error('Unexpected Password reset failed.', error, stackTrace);
       _showMessage(AuthStrings.forgotPasswordUnavailable);
     }
   }
 
-  Future<void> _handleGoogleSignIn() async {
-    if (!widget.isStartupReady) {
-      _showMessage('App services are still starting. Please try again.');
-      return;
-    }
-
-    try {
-      await _authRepository.signInWithGoogle();
-    } on UnimplementedError {
-      _showMessage(AuthStrings.googleUnavailable);
-    } catch (error, stackTrace) {
-      AppLogger.error('Google sign-in failed.', error, stackTrace);
-      _showMessage(AuthStrings.googleUnavailable);
-    }
-  }
-
   void _showMessage(String message) {
-    if (!mounted) {
-      return;
-    }
-
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
+  // final emailError = Validators.email(emailController.text);
+  // if (emailError != null) {
+  //   _showMessage(emailError);
+  //   return;
+  // }
+
   @override
   Widget build(BuildContext context) {
-    final appTheme = context.appTheme;
+    final apptheme = context.appTheme;
     final textTheme = Theme.of(context).textTheme;
-    final busy = _isSubmitting;
-
+    final busy = isSubmitting;
     return AuthShell(
       child: Container(
         padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
         decoration: BoxDecoration(
-          color: appTheme.surfacePrimary.withValues(alpha: 0.96),
-
-          border: Border.all(color: appTheme.borderSubtle),
-          boxShadow: appTheme.panelShadow,
+          color: apptheme.surfacePrimary.withValues(alpha: 0.96),
+          border: Border.all(color: apptheme.borderSubtle),
+          boxShadow: apptheme.panelShadow,
         ),
         child: Padding(
           padding: const EdgeInsets.only(top: 25, bottom: 25),
@@ -166,21 +153,24 @@ class _SignInPageState extends State<SignInPage> {
               const SizedBox(height: 24),
               Text(AppStrings.appName, style: textTheme.headlineMedium),
               const SizedBox(height: 8),
+
               Text(
                 AuthStrings.signInTagline,
                 textAlign: TextAlign.center,
                 style: textTheme.titleMedium,
               ),
               const SizedBox(height: 28),
+
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.fromLTRB(22, 24, 22, 20),
+
                 decoration: BoxDecoration(
-                  color: appTheme.surfaceSecondary,
+                  color: apptheme.surfaceSecondary,
                   borderRadius: BorderRadius.circular(28),
-                  border: Border.all(color: appTheme.borderStrong),
+                  border: Border.all(color: apptheme.borderStrong),
                   boxShadow:
-                      appTheme.panelShadow
+                      apptheme.panelShadow
                           .map(
                             (shadow) => shadow.copyWith(
                               blurRadius: 20,
@@ -190,10 +180,10 @@ class _SignInPageState extends State<SignInPage> {
                           )
                           .toList(),
                 ),
+
                 child: Form(
-                  key: _formKey,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Text(
                         AuthStrings.signInTitle,
@@ -201,18 +191,19 @@ class _SignInPageState extends State<SignInPage> {
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      SizedBox(height: 24),
                       AppTextField(
-                        controller: _emailController,
-                        label: AuthStrings.emailLabel,
+                        controller: emailController,
                         hintText: AuthStrings.emailHint,
                         prefixIcon: Icons.mail_outline_rounded,
                         keyboardType: TextInputType.emailAddress,
                         autofillHints: const [AutofillHints.email],
-                        enabled: !busy,
-                        validator: Validators.email,
+
+                        // enabled: !busy,
+                        // validator: Validator.email,
                       ),
                       const SizedBox(height: 20),
+
                       Row(
                         children: [
                           Expanded(
@@ -222,7 +213,7 @@ class _SignInPageState extends State<SignInPage> {
                             ),
                           ),
                           TextButton(
-                            onPressed: busy ? null : _handlePasswordReset,
+                            onPressed: () {},
                             style: TextButton.styleFrom(
                               padding: EdgeInsets.zero,
                               minimumSize: const Size(0, 0),
@@ -232,31 +223,31 @@ class _SignInPageState extends State<SignInPage> {
                           ),
                         ],
                       ),
+
                       const SizedBox(height: 10),
+
                       AppTextField(
-                        controller: _passwordController,
+                        controller: passwordController,
                         hintText: '********',
                         prefixIcon: Icons.lock_outline_rounded,
-                        obscureText: _obscurePassword,
-                        autofillHints: const [AutofillHints.password],
-                        enabled: !busy,
+                        // enabled: busy,
                         validator: Validators.password,
+                        obscureText: obscurePassword,
+                        autofillHints: const [AutofillHints.password],
                         suffixIcon: IconButton(
-                          onPressed:
-                              busy
-                                  ? null
-                                  : () {
-                                    setState(() {
-                                      _obscurePassword = !_obscurePassword;
-                                    });
-                                  },
+                          onPressed: () {
+                            setState(() {
+                              obscurePassword = !obscurePassword;
+                            });
+                          },
                           icon: Icon(
-                            _obscurePassword
+                            obscurePassword
                                 ? Icons.visibility_off_outlined
                                 : Icons.visibility_outlined,
                           ),
                         ),
                       ),
+
                       const SizedBox(height: 24),
                       AppPrimaryButton(
                         label: AuthStrings.continueLabel,
@@ -268,36 +259,31 @@ class _SignInPageState extends State<SignInPage> {
                       Row(
                         children: [
                           Expanded(
-                            child: Divider(color: appTheme.borderStrong),
+                            child: Divider(color: apptheme.borderStrong),
                           ),
+
                           Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 12),
+                            margin: const EdgeInsets.symmetric(horizontal: 10),
                             padding: const EdgeInsets.symmetric(
                               horizontal: 10,
-                              vertical: 2,
+                              vertical: 3,
                             ),
                             decoration: BoxDecoration(
-                              color: appTheme.surfaceTertiary,
-                              borderRadius: BorderRadius.circular(999),
+                              color: apptheme.surfaceTertiary,
+                              borderRadius: BorderRadius.circular(99),
                             ),
                             child: Text(
                               AuthStrings.dividerLabel,
                               style: textTheme.labelMedium?.copyWith(
-                                color: appTheme.successSoft,
+                                color: apptheme.successSoft,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
                           ),
                           Expanded(
-                            child: Divider(color: appTheme.borderStrong),
+                            child: Divider(color: apptheme.borderStrong),
                           ),
                         ],
-                      ),
-                      const SizedBox(height: 22),
-                      AppSecondaryButton(
-                        label: AuthStrings.continueWithGoogle,
-                        onPressed: busy ? null : _handleGoogleSignIn,
-                        leading: const GoogleMark(),
                       ),
                       const SizedBox(height: 20),
                       Row(
@@ -306,18 +292,13 @@ class _SignInPageState extends State<SignInPage> {
                           Text(
                             AuthStrings.noAccountPrompt,
                             style: textTheme.bodyMedium?.copyWith(
-                              color: appTheme.textMuted,
+                              color: apptheme.textMuted,
                             ),
                           ),
                           TextButton(
-                            onPressed:
-                                busy
-                                    ? null
-                                    : () => _showMessage(
-                                      AuthStrings.createAccountUnavailable,
-                                    ),
+                            onPressed: () {},
                             style: TextButton.styleFrom(
-                              foregroundColor: appTheme.successSoft,
+                              foregroundColor: apptheme.successSoft,
                             ),
                             child: const Text(AuthStrings.createAccount),
                           ),
@@ -327,45 +308,43 @@ class _SignInPageState extends State<SignInPage> {
                   ),
                 ),
               ),
+
               const SizedBox(height: 24),
+
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
                   vertical: 8,
                 ),
+
                 decoration: BoxDecoration(
-                  color: appTheme.surfaceSecondary,
+                  color: apptheme.surfaceSecondary,
                   borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: appTheme.borderSubtle),
+                  border: Border.all(color: apptheme.borderSubtle),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
                       Icons.shield_outlined,
-                      size: 16,
-                      color: appTheme.successSoft,
+                      size: 17,
+                      color: apptheme.successSoft,
                     ),
                     const SizedBox(width: 8),
                     Text(
                       AuthStrings.securityChip,
                       style: textTheme.labelLarge?.copyWith(
-                        color: appTheme.successSoft,
+                        fontSize: 12,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 1.0,
-                        fontSize: 12,
+                        color: apptheme.successSoft,
                       ),
                     ),
                   ],
                 ),
               ),
+
               const SizedBox(height: 18),
-              Text(
-                AuthStrings.securityBody,
-                textAlign: TextAlign.center,
-                style: textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 8),
               Wrap(
                 alignment: WrapAlignment.center,
                 crossAxisAlignment: WrapCrossAlignment.center,
@@ -376,9 +355,9 @@ class _SignInPageState extends State<SignInPage> {
                     child: const Text(AuthStrings.privacyPolicy),
                   ),
                   Text(
-                    '*',
+                    '•',
                     style: textTheme.bodyMedium?.copyWith(
-                      color: appTheme.textMuted,
+                      color: apptheme.textMuted,
                     ),
                   ),
                   TextButton(
