@@ -44,7 +44,11 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
       AppLogger.error('Resend verification failed.', error, stackTrace);
       _showMessage(error.message ?? AuthStrings.createAccountUnavailable);
     } catch (error, stackTrace) {
-      AppLogger.error('Unexpected resend verification failed.', error, stackTrace);
+      AppLogger.error(
+        'Unexpected resend verification failed.',
+        error,
+        stackTrace,
+      );
       _showMessage(AuthStrings.createAccountUnavailable);
     } finally {
       if (mounted) {
@@ -80,7 +84,11 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
       AppLogger.error('Verification refresh failed.', error, stackTrace);
       _showMessage(error.message ?? AuthStrings.createAccountUnavailable);
     } catch (error, stackTrace) {
-      AppLogger.error('Unexpected verification refresh failed.', error, stackTrace);
+      AppLogger.error(
+        'Unexpected verification refresh failed.',
+        error,
+        stackTrace,
+      );
       _showMessage(AuthStrings.createAccountUnavailable);
     } finally {
       if (mounted) {
@@ -97,10 +105,10 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
     });
 
     try {
-      await authRepository.signOut();
-      if (!mounted) {
-        return;
-      }
+      // await authRepository.signOut();
+      // if (!mounted) {
+      //   return;
+      // }
 
       Navigator.pushReplacement(
         context,
@@ -109,7 +117,11 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
         ),
       );
     } catch (error, stackTrace) {
-      AppLogger.error('Sign-out before returning to sign-in failed.', error, stackTrace);
+      AppLogger.error(
+        'Sign-out before returning to sign-in failed.',
+        error,
+        stackTrace,
+      );
       _showMessage('Please try again.');
     } finally {
       if (mounted) {

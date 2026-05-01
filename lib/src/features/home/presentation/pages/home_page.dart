@@ -78,7 +78,6 @@ class HomePage extends StatelessWidget {
             lines: [
               'Firebase bootstrap now lives in src/services/firebase/',
               'Add Auth, Firestore, Storage, Messaging wrappers here',
-              'Use firebase_options.dart for platform-specific configuration',
             ],
           ),
           const SizedBox(height: AppConstants.sectionSpacing),
