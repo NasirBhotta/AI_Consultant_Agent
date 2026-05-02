@@ -13,9 +13,7 @@ class HomePage extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppStrings.appName),
-      ),
+      appBar: AppBar(title: const Text(AppStrings.appName)),
       body: ListView(
         padding: const EdgeInsets.all(AppConstants.screenPadding),
         children: [
@@ -23,13 +21,12 @@ class HomePage extends StatelessWidget {
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  colorScheme.primary,
-                  colorScheme.primaryContainer,
-                ],
+                colors: [colorScheme.primary, colorScheme.primaryContainer],
               ),
               borderRadius: BorderRadius.circular(28),
             ),
+
+            ///
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
