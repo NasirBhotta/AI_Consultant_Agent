@@ -1,3 +1,4 @@
+import 'package:agent_app/src/app/app_gate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
@@ -33,6 +34,18 @@ class _StartupPageState extends State<StartupPage> {
     _loadApp();
   }
 
+  Future<void> _goNext() async {
+    final user = await AppGate.resolve();
+
+    if (!mounted) {
+      return;
+    }
+
+    Navigator.of(
+      context,
+    ).pushReplacement(MaterialPageRoute(builder: (_) => user));
+  }
+
   Future<void> _loadApp() async {
     setState(() {
       _isInitializing = true;
@@ -42,6 +55,7 @@ class _StartupPageState extends State<StartupPage> {
     try {
       await _startup.initialize();
       _isStartupReady = true;
+      await _goNext();
     } catch (error, stackTrace) {
       _isStartupReady = false;
       _startupError = error;

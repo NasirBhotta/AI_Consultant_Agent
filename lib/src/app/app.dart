@@ -1,3 +1,4 @@
+import 'package:agent_app/src/app/startup/presentation/pages/startup_page.dart';
 import 'package:flutter/material.dart';
 
 import '../core/constants/app_strings.dart';
@@ -14,7 +15,7 @@ class AgentApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       onGenerateRoute: AppRouter.onGenerateRoute,
-      initialRoute: AppRouter.startup,
+      home: const StartupPage(),
     );
   }
 }
