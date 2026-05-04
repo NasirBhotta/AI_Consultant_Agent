@@ -13,7 +13,10 @@ class HomePage extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text(AppStrings.appName)),
+      appBar: AppBar(
+        title: const Text(AppStrings.appName),
+        leading: const SizedBox(),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(AppConstants.screenPadding),
         children: [
