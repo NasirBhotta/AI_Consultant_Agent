@@ -1,11 +1,10 @@
+import 'package:agent_app/src/app/providers/app_providers.dart';
 import 'package:agent_app/src/app/theme/app_theme_extension.dart';
 import 'package:agent_app/src/core/constants/app_strings.dart';
 import 'package:agent_app/src/core/utils/app_logger.dart';
 import 'package:agent_app/src/core/utils/validators.dart';
 import 'package:agent_app/src/features/auth/constants/auth_strings.dart';
-import 'package:agent_app/src/features/auth/data/repositories/firebase_auth_repository.dart';
 import 'package:agent_app/src/features/auth/domain/models/sign_in_credentials.dart';
-import 'package:agent_app/src/features/auth/domain/repositories/auth_repository.dart';
 import 'package:agent_app/src/features/auth/presentation/pages/sign_up_page.dart';
 import 'package:agent_app/src/features/auth/presentation/pages/verify_email_page.dart';
 import 'package:agent_app/src/features/auth/presentation/widgets/auth_brand_badge.dart';
@@ -16,26 +15,25 @@ import 'package:agent_app/src/shared/widgets/app_secondary_button.dart';
 import 'package:agent_app/src/shared/widgets/app_text_field.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
-class SignInPage extends StatefulWidget {
+class SignInPage extends ConsumerStatefulWidget {
   const SignInPage({super.key, required this.isStartupReady});
 
   final bool isStartupReady;
 
   @override
-  State<SignInPage> createState() => _SignInPageState();
+  ConsumerState<SignInPage> createState() => _SignInPageState();
 }
 
-class _SignInPageState extends State<SignInPage> {
+class _SignInPageState extends ConsumerState<SignInPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   bool isSubmitting = false;
   bool obscurePassword = true;
-
-  AuthRepository get authRepository => FirebaseAuthRepository();
 
   @override
   void dispose() {
@@ -64,6 +62,7 @@ class _SignInPageState extends State<SignInPage> {
     });
 
     try {
+      final authRepository = ref.read(authRepositoryProvider);
       final session = await authRepository.signIn(
         SignInCredentials(
           email: emailController.text,
@@ -129,6 +128,7 @@ class _SignInPageState extends State<SignInPage> {
     });
 
     try {
+      final authRepository = ref.read(authRepositoryProvider);
       await authRepository.signInWithGoogle();
 
       if (!mounted) {
@@ -173,6 +173,7 @@ class _SignInPageState extends State<SignInPage> {
     }
 
     try {
+      final authRepository = ref.read(authRepositoryProvider);
       await authRepository.sendPasswordReset(email: emailController.text);
       _showMessage('Password reset email sent. Please check your inbox.');
     } on FirebaseAuthException catch (error, stackTrace) {

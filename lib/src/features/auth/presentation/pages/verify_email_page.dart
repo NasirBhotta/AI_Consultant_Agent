@@ -1,9 +1,8 @@
+import 'package:agent_app/src/app/providers/app_providers.dart';
 import 'package:agent_app/src/app/theme/app_theme_extension.dart';
 import 'package:agent_app/src/core/constants/app_strings.dart';
 import 'package:agent_app/src/core/utils/app_logger.dart';
 import 'package:agent_app/src/features/auth/constants/auth_strings.dart';
-import 'package:agent_app/src/features/auth/data/repositories/firebase_auth_repository.dart';
-import 'package:agent_app/src/features/auth/domain/repositories/auth_repository.dart';
 import 'package:agent_app/src/features/auth/presentation/pages/sign_in_page.dart';
 import 'package:agent_app/src/features/auth/presentation/widgets/auth_brand_badge.dart';
 import 'package:agent_app/src/features/auth/presentation/widgets/auth_shell.dart';
@@ -12,8 +11,9 @@ import 'package:agent_app/src/shared/widgets/app_primary_button.dart';
 import 'package:agent_app/src/shared/widgets/app_secondary_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class VerifyEmailPage extends StatefulWidget {
+class VerifyEmailPage extends ConsumerStatefulWidget {
   const VerifyEmailPage({
     super.key,
     required this.isStartupReady,
@@ -24,13 +24,11 @@ class VerifyEmailPage extends StatefulWidget {
   final String email;
 
   @override
-  State<VerifyEmailPage> createState() => _VerifyEmailPageState();
+  ConsumerState<VerifyEmailPage> createState() => _VerifyEmailPageState();
 }
 
-class _VerifyEmailPageState extends State<VerifyEmailPage> {
+class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
   bool isSubmitting = false;
-
-  AuthRepository get authRepository => FirebaseAuthRepository();
 
   Future<void> _resendVerificationEmail() async {
     setState(() {
@@ -38,6 +36,7 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
     });
 
     try {
+      final authRepository = ref.read(authRepositoryProvider);
       await authRepository.sendEmailVerification();
       _showMessage(AuthStrings.verificationEmailSent);
     } on FirebaseAuthException catch (error, stackTrace) {
@@ -65,6 +64,7 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
     });
 
     try {
+      final authRepository = ref.read(authRepositoryProvider);
       final isVerified = await authRepository.reloadAndCheckEmailVerification();
 
       if (!mounted) {
@@ -105,10 +105,11 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
     });
 
     try {
-      // await authRepository.signOut();
-      // if (!mounted) {
-      //   return;
-      // }
+      final authRepository = ref.read(authRepositoryProvider);
+      await authRepository.signOut();
+      if (!mounted) {
+        return;
+      }
 
       Navigator.pushReplacement(
         context,

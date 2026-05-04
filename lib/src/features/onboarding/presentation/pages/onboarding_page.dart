@@ -1,41 +1,61 @@
 import 'package:agent_app/src/app/theme/app_theme_extension.dart';
 import 'package:agent_app/src/core/constants/app_strings.dart';
+import 'package:agent_app/src/core/utils/app_logger.dart';
 import 'package:agent_app/src/features/home/presentation/pages/home_page.dart';
+import 'package:agent_app/src/features/onboarding/presentation/providers/onboarding_providers.dart';
 import 'package:agent_app/src/shared/widgets/app_primary_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class OnboardingPage extends StatefulWidget {
+class OnboardingPage extends ConsumerStatefulWidget {
   const OnboardingPage({super.key});
 
   @override
-  State<OnboardingPage> createState() => _OnboardingPageState();
+  ConsumerState<OnboardingPage> createState() => _OnboardingPageState();
 }
 
-class _OnboardingPageState extends State<OnboardingPage> {
+class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   bool isSubmitting = false;
 
   Future<void> _completeOnboarding() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      return;
-    }
-
     setState(() {
       isSubmitting = true;
     });
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('onboardingCompleted_${user.uid}', true);
+    try {
+      await ref.read(onboardingControllerProvider).completeOnboarding();
 
-    if (!mounted) {
-      return;
+      if (!mounted) {
+        return;
+      }
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const HomePage()),
+      );
+    } on FirebaseAuthException catch (error, stackTrace) {
+      AppLogger.error('Failed to complete onboarding.', error, stackTrace);
+      _showMessage(error.message ?? 'Please sign in again and try once more.');
+    } catch (error, stackTrace) {
+      AppLogger.error(
+        'Unexpected onboarding completion failure.',
+        error,
+        stackTrace,
+      );
+      _showMessage('We could not finish onboarding. Please try again.');
+    } finally {
+      if (mounted) {
+        setState(() {
+          isSubmitting = false;
+        });
+      }
     }
+  }
 
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const HomePage()),
-    );
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
