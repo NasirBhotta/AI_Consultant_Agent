@@ -16,17 +16,34 @@ class _StartupPageState extends ConsumerState<StartupPage> {
   @override
   void initState() {
     super.initState();
-    _loadApp();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      _loadApp();
+    });
+  }
+
+  void _replaceScreen(Widget screen) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => screen));
+    });
   }
 
   Future<void> _goNext() async {
     final nextScreen = await ref.read(appGateProvider.future);
 
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
-    Navigator.of(
-      context,
-    ).pushReplacement(MaterialPageRoute(builder: (_) => nextScreen));
+    _replaceScreen(nextScreen);
   }
 
   Future<void> _loadApp() async {
@@ -38,13 +55,12 @@ class _StartupPageState extends ConsumerState<StartupPage> {
     } catch (e, st) {
       AppLogger.error('Startup failed', e, st);
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder:
-              (_) => StartupErrorPage(message: e.toString(), onRetry: _loadApp),
-        ),
+      _replaceScreen(
+        StartupErrorPage(message: e.toString(), onRetry: _loadApp),
       );
     } finally {
       FlutterNativeSplash.remove();
