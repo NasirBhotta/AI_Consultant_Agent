@@ -1,18 +1,16 @@
 import 'package:agent_app/src/app/theme/app_theme_extension.dart';
+import 'package:agent_app/src/features/onboarding/domain/models/onboarding_profile.dart';
+import 'package:agent_app/src/features/onboarding/presentation/providers/onboarding_providers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class OnboardingOne extends StatefulWidget {
+class OnboardingOne extends ConsumerWidget {
   const OnboardingOne({super.key});
 
   @override
-  State<OnboardingOne> createState() => _OnboardingOneState();
-}
-
-class _OnboardingOneState extends State<OnboardingOne> {
-  int selectedIndex = 1;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(onboardingDraftProvider);
+    final controller = ref.read(onboardingDraftProvider.notifier);
     final appTheme = context.appTheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -27,6 +25,7 @@ class _OnboardingOneState extends State<OnboardingOne> {
             border: Border.all(color: appTheme.borderStrong),
             boxShadow: appTheme.panelShadow,
           ),
+
           /// updated
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -71,31 +70,38 @@ class _OnboardingOneState extends State<OnboardingOne> {
         ),
         const SizedBox(height: 24),
         _ChoiceCard(
-          isSelected: selectedIndex == 0,
+          isSelected: state.apsStatus == ApsCertificateStatus.hasCertificate,
           accentColor: const Color(0xFF32C17C),
           icon: Icons.check_circle_outline_rounded,
           title: 'Yes, I have it',
           subtitle: 'I have a digital or physical copy of my certificate.',
-          onTap: () => setState(() => selectedIndex = 0),
+          onTap:
+              () => controller.selectApsStatus(
+                ApsCertificateStatus.hasCertificate,
+              ),
         ),
         const SizedBox(height: 14),
         _ChoiceCard(
-          isSelected: selectedIndex == 1,
+          isSelected: state.apsStatus == ApsCertificateStatus.applying,
           accentColor: const Color(0xFFFFB86B),
           icon: Icons.schedule_rounded,
           title: "I'm applying for it",
           subtitle: 'My application is in progress with the APS office.',
           badgeLabel: 'ALLOW 4-8 WEEKS',
-          onTap: () => setState(() => selectedIndex = 1),
+          onTap:
+              () => controller.selectApsStatus(ApsCertificateStatus.applying),
         ),
         const SizedBox(height: 14),
         _ChoiceCard(
-          isSelected: selectedIndex == 2,
+          isSelected: state.apsStatus == ApsCertificateStatus.needsGuidance,
           accentColor: const Color(0xFF9BBEFF),
           icon: Icons.help_outline_rounded,
           title: "I don't know what this is",
           subtitle: 'I need more information about the APS requirement.',
-          onTap: () => setState(() => selectedIndex = 2),
+          onTap:
+              () => controller.selectApsStatus(
+                ApsCertificateStatus.needsGuidance,
+              ),
         ),
         const SizedBox(height: 18),
         Container(

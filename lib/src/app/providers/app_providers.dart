@@ -2,6 +2,8 @@ import 'package:agent_app/src/app/app_gate.dart';
 import 'package:agent_app/src/app/startup/app_startup.dart';
 import 'package:agent_app/src/features/auth/data/repositories/firebase_auth_repository.dart';
 import 'package:agent_app/src/features/auth/domain/repositories/auth_repository.dart';
+import 'package:agent_app/src/features/onboarding/data/repositories/firebase_onboarding_repository.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,7 +13,13 @@ final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {
   return FirebaseAuth.instance;
 });
 
-final sharedPreferencesProvider = FutureProvider<SharedPreferences>((ref) async {
+final firebaseFirestoreProvider = Provider<FirebaseFirestore>((ref) {
+  return FirebaseFirestore.instance;
+});
+
+final sharedPreferencesProvider = FutureProvider<SharedPreferences>((
+  ref,
+) async {
   return SharedPreferences.getInstance();
 });
 
@@ -23,15 +31,30 @@ final authStateChangesProvider = StreamProvider<User?>((ref) {
   return ref.watch(firebaseAuthProvider).authStateChanges();
 });
 
+final onboardingRepositoryProvider =
+    FutureProvider<FirebaseOnboardingRepository>((ref) async {
+      final sharedPreferences = await ref.watch(
+        sharedPreferencesProvider.future,
+      );
+      return FirebaseOnboardingRepository(
+        firestore: ref.watch(firebaseFirestoreProvider),
+        sharedPreferences: sharedPreferences,
+      );
+    });
+
 final appStartupProvider = FutureProvider<void>((ref) async {
   await AppStartup().initialize();
 });
 
 final appGateProvider = FutureProvider<Widget>((ref) async {
   final sharedPreferences = await ref.watch(sharedPreferencesProvider.future);
+  final onboardingRepository = await ref.watch(
+    onboardingRepositoryProvider.future,
+  );
   final gate = AppGate(
     firebaseAuth: ref.watch(firebaseAuthProvider),
     sharedPreferences: sharedPreferences,
+    onboardingRepository: onboardingRepository,
   );
   return gate.resolve();
 });

@@ -13,6 +13,11 @@ class AppTextField extends StatelessWidget {
     this.obscureText = false,
     this.keyboardType,
     this.autofillHints,
+    this.onChanged,
+    this.onSubmitted,
+    this.onTap,
+    this.decoration,
+    this.textInputAction,
   });
 
   final TextEditingController controller;
@@ -25,6 +30,11 @@ class AppTextField extends StatelessWidget {
   final bool obscureText;
   final TextInputType? keyboardType;
   final Iterable<String>? autofillHints;
+  final void Function(String)? onChanged;
+  final void Function(String)? onSubmitted;
+  final void Function()? onTap;
+  final InputDecoration? decoration;
+  final TextInputAction? textInputAction;
 
   @override
   Widget build(BuildContext context) {
