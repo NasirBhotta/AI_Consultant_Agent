@@ -1,7 +1,7 @@
 import 'package:agent_app/src/app/theme/app_theme_extension.dart';
 import 'package:agent_app/src/core/utils/app_logger.dart';
-import 'package:agent_app/src/features/home/presentation/pages/home_page.dart';
 import 'package:agent_app/src/features/onboarding/presentation/pages/onboarding_steps/onboarding_one.dart';
+import 'package:agent_app/src/features/onboarding/presentation/pages/onboarding_steps/onboarding_three.dart';
 import 'package:agent_app/src/features/onboarding/presentation/pages/onboarding_steps/onboarding_two.dart';
 import 'package:agent_app/src/features/onboarding/presentation/providers/onboarding_providers.dart';
 import 'package:agent_app/src/shared/widgets/app_primary_button.dart';
@@ -21,9 +21,11 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   late final PageController _pageController;
   int _currentStep = 0;
 
-  int get _totalSteps => 2;
+  int get _implementedSteps => 3;
 
-  bool get _isLastStep => _currentStep == _totalSteps - 1;
+  int get _displayTotalSteps => 5;
+
+  bool get _isLastStep => _currentStep == _implementedSteps - 1;
 
   @override
   void initState() {
@@ -62,7 +64,18 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
       return;
     }
 
+    if (_currentStep == 2 && !profile.isStepThreeComplete) {
+      _showMessage('Upload the required academic documents to continue.');
+      return;
+    }
+
     try {
+      if (mounted) {
+        setState(() {
+          isSubmitting = true;
+        });
+      }
+
       if (!_isLastStep) {
         await ref.read(onboardingControllerProvider).saveDraft();
         await _pageController.nextPage(
@@ -72,19 +85,8 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
         return;
       }
 
-      setState(() {
-        isSubmitting = true;
-      });
-
-      await ref.read(onboardingControllerProvider).completeOnboarding();
-
-      if (!mounted) {
-        return;
-      }
-
-      Navigator.of(
-        context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomePage()));
+      await ref.read(onboardingControllerProvider).saveDraft();
+      _showMessage('Step 3 is saved. We can build step 4 next.');
     } on FirebaseAuthException catch (error, stackTrace) {
       AppLogger.error('Failed to complete onboarding.', error, stackTrace);
       _showMessage(error.message ?? 'Please sign in again and try once more.');
@@ -127,7 +129,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
     final profile = ref.watch(onboardingDraftProvider);
     final appTheme = context.appTheme;
     final textTheme = Theme.of(context).textTheme;
-    final progress = (_currentStep + 1) / _totalSteps;
+    final progress = (_currentStep + 1) / _displayTotalSteps;
     final percentLabel = '${(progress * 100).round()}% complete';
 
     return Scaffold(
@@ -155,7 +157,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                   Row(
                     children: [
                       Text(
-                        'Step ${_currentStep + 1} of $_totalSteps',
+                        'Step ${_currentStep + 1} of $_displayTotalSteps',
                         style: textTheme.titleMedium?.copyWith(
                           color: appTheme.textSecondary,
                         ),
@@ -194,7 +196,11 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                     _currentStep = index;
                   });
                 },
-                children: const [OnboardingOne(), OnboardingTwo()],
+                children: const [
+                  OnboardingOne(),
+                  OnboardingTwo(),
+                  OnboardingThree(),
+                ],
               ),
             ),
             Padding(
@@ -211,20 +217,26 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                     child: Row(
                       children: [
                         Icon(
-                          profile.isStepOneComplete && profile.isStepTwoComplete
+                          profile.isStepOneComplete &&
+                                  profile.isStepTwoComplete &&
+                                  profile.isStepThreeComplete
                               ? Icons.verified_rounded
                               : Icons.auto_awesome_rounded,
                           size: 20,
                           color:
-                              profile.isStepOneComplete && profile.isStepTwoComplete
+                              profile.isStepOneComplete &&
+                                      profile.isStepTwoComplete &&
+                                      profile.isStepThreeComplete
                                   ? const Color(0xFF32C17C)
                                   : appTheme.successSoft,
                         ),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            profile.isStepOneComplete && profile.isStepTwoComplete
-                                ? 'Ready to finish onboarding and unlock the app.'
+                            profile.isStepOneComplete &&
+                                    profile.isStepTwoComplete &&
+                                    profile.isStepThreeComplete
+                                ? 'Step 3 is complete. The next onboarding steps can build on this saved data.'
                                 : 'Your responses are saved as you move through the journey.',
                             style: textTheme.bodyMedium?.copyWith(
                               color: appTheme.textSecondary,
@@ -249,7 +261,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: AppPrimaryButton(
-                          label: _isLastStep ? 'Continue' : 'Next',
+                          label: _isLastStep ? 'Save Progress' : 'Next',
                           onPressed: isSubmitting ? null : _handleContinue,
                           isLoading: isSubmitting,
                         ),

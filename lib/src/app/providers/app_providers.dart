@@ -5,6 +5,7 @@ import 'package:agent_app/src/features/auth/domain/repositories/auth_repository.
 import 'package:agent_app/src/features/onboarding/data/repositories/firebase_onboarding_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,6 +16,10 @@ final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {
 
 final firebaseFirestoreProvider = Provider<FirebaseFirestore>((ref) {
   return FirebaseFirestore.instance;
+});
+
+final firebaseStorageProvider = Provider<FirebaseStorage>((ref) {
+  return FirebaseStorage.instance;
 });
 
 final sharedPreferencesProvider = FutureProvider<SharedPreferences>((
@@ -38,6 +43,7 @@ final onboardingRepositoryProvider =
       );
       return FirebaseOnboardingRepository(
         firestore: ref.watch(firebaseFirestoreProvider),
+        storage: ref.watch(firebaseStorageProvider),
         sharedPreferences: sharedPreferences,
       );
     });

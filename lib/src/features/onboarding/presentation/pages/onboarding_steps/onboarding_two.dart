@@ -497,7 +497,6 @@ class _TextAnswerInput extends StatelessWidget {
           textInputAction: TextInputAction.done,
           onChanged: onChanged,
           onSubmitted: (_) => onSubmit(),
-          decoration: InputDecoration(hintText: hintText),
         ),
         const SizedBox(height: 14),
         Align(

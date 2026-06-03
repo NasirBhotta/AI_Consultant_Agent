@@ -57,11 +57,17 @@ class AppTextField extends StatelessWidget {
           obscureText: obscureText,
           keyboardType: keyboardType,
           autofillHints: autofillHints,
-          decoration: InputDecoration(
-            hintText: hintText,
-            prefixIcon: Icon(prefixIcon),
-            suffixIcon: suffixIcon,
-          ),
+          onChanged: onChanged,
+          onFieldSubmitted: onSubmitted,
+          onTap: onTap,
+          textInputAction: textInputAction,
+          decoration:
+              decoration ??
+              InputDecoration(
+                hintText: hintText,
+                prefixIcon: Icon(prefixIcon),
+                suffixIcon: suffixIcon,
+              ),
         ),
       ],
     );
